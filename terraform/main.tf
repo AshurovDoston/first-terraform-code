@@ -1,35 +1,63 @@
-resource "azurerm_resource_group" "example1" {
-  name     = "TerraRG"
-  location = "East US"
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
 }
 
-resource "azurerm_kubernetes_cluster" "AKS" {
-  name                = "TerraAKS"
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+
+}
+resource "azurerm_resource_group" "example" {
+  name     = "TerraRG"
+  location = "east us"
+}
+
+resource "azurerm_network_security_group" "network_security" {
+  name                = "network_security"
   location            = "East US"
   resource_group_name = "TerraRG"
-  dns_prefix          = "qwer123-k8s"
-
-  default_node_pool {
-    name       = "terrapool"
-    node_count = 1
-    vm_size    = "Standard_B2s"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  tags = {
-    Environment = "Production"
-  }
 }
 
-# output "client_certificate" {
-#   value = azurerm_kubernetes_cluster.example.kube_config.0.client_certificate
-# }
+resource "azurerm_network_ddos_protection_plan" "ddos" {
+  name                = "TerraDDOSplan"
+  location            = "East US"
+  resource_group_name = "TerraRG"
+}
 
-# output "kube_config" {
-#   value = azurerm_kubernetes_cluster.example.kube_config_raw
+resource "azurerm_virtual_network" "VNet" {
+  name                = "TerraVNet"
+  location            = "East US"
+  resource_group_name = "TerraRG"
+  address_space       = ["10.0.0.0/16"]
+  dns_servers         = ["10.0.0.4", "10.0.0.5"]
 
-#   sensitive = true
-# }
+#   ddos_protection_plan {
+#     id     = azurerm_network_ddos_protection_plan.example.id
+#     enable = true
+#   }
+
+  subnet {
+    name           = "TerraSubnet1"
+    address_prefix = "10.0.1.0/24"
+  }
+
+  subnet {
+    name           = "TerraSubnet2"
+    address_prefix = "10.0.2.0/24"
+  }
+
+#   subnet {
+#     name           = "subnet3"
+#     address_prefix = "10.0.3.0/24"
+#     security_group = azurerm_network_security_group.example.id
+#   }
+
+#   tags = {
+#     environment = "Production"
+#   }
+}
