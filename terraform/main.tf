@@ -1,24 +1,35 @@
-terraform {
-  required_providers {
-    docker = {
-      source  = "kreuzwerker/docker"
-      version = "~> 2.13.0"
-    }
+resource "azurerm_resource_group" "example1" {
+  name     = "TerraRG"
+  location = "East US"
+}
+
+resource "azurerm_kubernetes_cluster" "AKS" {
+  name                = "TerraAKS"
+  location            = "East US"
+  resource_group_name = "TerraRG"
+  dns_prefix          = "qwer123-k8s"
+
+  default_node_pool {
+    name       = "terrapool"
+    node_count = 1
+    vm_size    = "Standard_B2s"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    Environment = "Production"
   }
 }
 
-provider "docker" {}
+# output "client_certificate" {
+#   value = azurerm_kubernetes_cluster.example.kube_config.0.client_certificate
+# }
 
-resource "docker_image" "nginx" {
-  name         = "nginx:latest"
-  keep_locally = false
-}
+# output "kube_config" {
+#   value = azurerm_kubernetes_cluster.example.kube_config_raw
 
-resource "docker_container" "nginx" {
-  image = docker_image.nginx.latest
-  name  = "first_terraform"
-  ports {
-    internal = 80
-    external = 8000
-  }
-}
+#   sensitive = true
+# }
